@@ -22,25 +22,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import sys, os, re
+import sys
+
+L_STR = '\\begin{comment}'
+R_STR = '\\end{comment}'
 
 
-def flatten_tex_files(root_file_path, dir_path):
-    """ Expand all \\input{} in the given tex file, recursively. """
+def rm_comments(filename):
+    """ Remove all comment blocks in the given tex file. """
+    with open(filename) as f:
+        left_count = 0
+        while True:
+            line = f.readline()
+            if not line:
+                break
 
-    with open(root_file_path, 'r') as f:
-        for line in f:
-            match = re.compile("^(?!%).*\\\input{(.*)}").search(line)
-            if match:
-                input_file_path = match.group(1)
-                if os.path.splitext(input_file_path)[1] != '.tex':
-                    input_file_path += '.tex'
-                flatten_tex_files(os.path.join(dir_path, input_file_path), dir_path)
-            else:
-                sys.stdout.write(line)
+            if len(line.strip()) > 0 and line.strip()[0] == '%':
+                continue
+
+            if L_STR in line or R_STR in line:
+                if L_STR in line:
+                    if left_count == 0:
+                        sys.stdout.write(line[:line.find(L_STR)] + '\r\n')
+                    left_count += line.count(L_STR)
+
+                if R_STR in line:
+                    left_count -= line.count(R_STR)
+                    if left_count == 0:
+                        sys.stdout.write(line[line.rfind(R_STR)+len(R_STR):])
+
+                continue
+
+            if left_count > 0:
+                continue
+
+            sys.stdout.write(line)
+    return 0
 
 
+# Usage Example: python rm_comments.py source.tex > output.tex
 if __name__ == "__main__":
-    root_tex_file_path = sys.argv[1]
-    root_dir_path = os.path.dirname(root_tex_file_path)
-    flatten_tex_files(root_tex_file_path, root_dir_path)
+    rm_comments(sys.argv[1])
