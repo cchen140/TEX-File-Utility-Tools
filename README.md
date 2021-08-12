@@ -1,6 +1,6 @@
-### latexdiff Preprocessing Tools
+### TEX File Utility Tools
 
-Tools in this repository are developed for processing latex files to be fed into `latexdiff`.
+Tools in this repository are initially developed for processing latex files to be fed into `latexdiff`.
 
 To use them, run `flatten.py` first and then `rm_hl.py` or `rm_comments.py`
 based on your needs before feeding the output tex file into `latexdiff`.   
